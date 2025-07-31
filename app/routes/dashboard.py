@@ -37,6 +37,7 @@ def miner(uid):
         filtered_averages.raise_for_status()
         data = response.json()
         filtered_averages = filtered_averages.json()
+        print(data)
     except Exception as e:
         print(f"Can't get data from API, Error: {e}")
     return render_template(

@@ -33,4 +33,5 @@ class VariationScore(db.Model):
     variation = db.Column(db.String(128))
     phonetic_score = db.Column(db.Float)
     orthographic_score = db.Column(db.Float)
+    name_part = db.Column(db.String(128))
     name_id = db.Column(db.Integer, db.ForeignKey('name_score.id'))

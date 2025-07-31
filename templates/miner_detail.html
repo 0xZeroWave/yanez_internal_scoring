@@ -286,19 +286,49 @@
                   <th>Phonetic</th>
                   <th>Orthographic</th>
                 </tr>
-                {% for v in name.variations %}
+                {% set firsts = name.first_name_variations %}
+                {% set lasts = name.last_name_variations %}
+                {% if lasts and lasts|length > 0 %}
+                  {% for i in range(firsts|length) %}
+                    {% set f = firsts[i] %}
+                    {% set l = lasts[i] if i < lasts|length else None %}
+                    <tr>
+                      <td>
+                        <span>{{ f.variation }}{% if l %} {{ l.variation }}{% endif %}</span>
+                      </td>
+                      <td>
+                        {% if l %}
+                          {{ ((f.phonetic_score + l.phonetic_score) / 2) | round(3) }}
+                        {% else %}
+                          {{ f.phonetic_score|round(3) }}
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if l %}
+                          {{ ((f.orthographic_score + l.orthographic_score) / 2) | round(3) }}
+                        {% else %}
+                          {{ f.orthographic_score|round(3) }}
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  {% for f in firsts %}
+                    <tr>
+                      <td>
+                        <span>{{ f.variation }}</span>
+                      </td>
+                      <td>{{ f.phonetic_score|round(3) }}</td>
+                      <td>{{ f.orthographic_score|round(3) }}</td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
                 <tr>
-                  <td>
-                    {% if v.variation == name.name %}
-                    <span class="variation-self">{{ v.variation }}</span>
-                    {% else %}
-                    <span>{{ v.variation }}</span>
-                    {% endif %}
+                  <td colspan="3" style="text-align: right">
+                    <b>Combined Final Score:</b>
+                    <span class="score-main">{{ name.final_score|round(3) }}</span>
                   </td>
-                  <td>{{ v.phonetic_score|round(3) }}</td>
-                  <td>{{ v.orthographic_score|round(3) }}</td>
                 </tr>
-                {% endfor %}
               </table>
             </div>
           </div>

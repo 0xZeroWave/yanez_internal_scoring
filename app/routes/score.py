@@ -17,12 +17,12 @@ service_bp = Blueprint('service', __name__, url_prefix='/api')
 def input_score():
     log.info("POST /yanez/score accessed")
     try:
-        data = request.get_json()
+        data = request.json
+        print(data)
         uid = data.get('uid', 0)
         variation_config = data.get('variation_config', {})
         variation_result = data.get('variation_result', {})
         log.info(f"Received score submission from UID: {uid}")
-
         user = UserUID.query.filter_by(uid=uid).first()
         if not user:
             user = UserUID(uid=uid)
@@ -43,9 +43,22 @@ def input_score():
                     variation=var['variation'],
                     phonetic_score=var['phonetic_score'],
                     orthographic_score=var['orthographic_score'],
+                    name_part='first',
                     name_id=name_score.id
                 )
                 db.session.add(variation_score)
+                
+            if scores_detail.get('last_name', {}):
+                last_name_variations = scores_detail.get('last_name', {}).get('metrics', {}).get('variations', [])
+                for var in last_name_variations:
+                    variation_score = VariationScore(
+                        variation=var['variation'],
+                        phonetic_score=var['phonetic_score'],
+                        orthographic_score=var['orthographic_score'],
+                        name_part='last',
+                        name_id=name_score.id
+                        )
+                    db.session.add(variation_score)
         db.session.commit()
         log.info(f"Scores for UID {uid} successfully saved")
         return jsonify({"status": True, "data": {'Average Final Score': variations_scores['average_final_score']}})
@@ -105,16 +118,25 @@ def get_score():
                 'names': []
             }
             for name_score in session.names:
+                first_name_vars = [var for var in name_score.variations if var.name_part == 'first']
+                last_name_vars = [var for var in name_score.variations if var.name_part == 'last']
                 name_data = {
                     'name': name_score.name,
                     'final_score': name_score.final_score,
                     'base_score': name_score.base_score,
-                    'variations': [
+                    'first_name_variations': [
                         {
                             'variation': var.variation,
                             'phonetic_score': var.phonetic_score,
                             'orthographic_score': var.orthographic_score
-                        } for var in name_score.variations
+                        } for var in first_name_vars
+                    ],
+                    'last_name_variations': [
+                        {
+                            'variation': var.variation,
+                            'phonetic_score': var.phonetic_score,
+                            'orthographic_score': var.orthographic_score
+                        } for var in last_name_vars
                     ]
                 }
                 session_data['names'].append(name_data)
