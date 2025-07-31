@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Scoring Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 1250px;
+        margin: 46px auto 40px auto;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.42);
+        border-radius: 2.5rem;
+        box-shadow: 0 12px 38px 0 rgba(0, 0, 0, 0.1),
+          0 1.5px 7px 0 rgba(0, 0, 0, 0.04);
+        backdrop-filter: blur(12px);
+        border: 1.2px solid rgba(255, 255, 255, 0.18);
+      }
+      h1 {
+        font-weight: 800;
+        font-size: 2.1rem;
+        margin: 0 0 16px 0;
+        letter-spacing: -0.01em;
+        color: #21253b;
+        padding-top: 36px;
+        padding-left: 54px;
+        text-align: center;
+      }
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        margin: 0 0 36px 0;
+        padding-left: 54px;
+      }
+      .summary > div {
+        background: rgba(255, 255, 255, 0.65);
+        border-radius: 1.5rem;
+        box-shadow: 0 1.5px 7px 0 rgba(0, 0, 0, 0.05);
+        padding: 12px 24px 12px 18px;
+        font-size: 1.07rem;
+        color: #303765;
+      }
+      .panel {
+        margin: 0 44px 26px 44px;
+        border-radius: 1.6rem;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 4px 18px 0 rgba(44, 112, 255, 0.07);
+        overflow: hidden;
+        border: 1.2px solid #e9ecf4;
+      }
+      .panel-header {
+        padding: 18px 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: 1.12rem;
+        background: linear-gradient(90deg, #e0ecff 0%, #fafbfc 100%);
+        color: #2748a5;
+        border-bottom: 1px solid #e4ebfd;
+        transition: background 0.16s;
+        user-select: none;
+      }
+      .panel-header:hover {
+        background: #e6f2ff;
+      }
+      .panel-content {
+        display: none;
+        padding: 22px 28px 24px 28px;
+        background: rgba(246, 249, 255, 0.68);
+        border-radius: 0 0 1.6rem 1.6rem;
+        animation: fadeIn 0.24s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .chevron {
+        display: inline-block;
+        margin-right: 18px;
+        transition: transform 0.23s;
+      }
+      .panel.open > .panel-header .chevron {
+        transform: rotate(90deg);
+      }
+      .name-panel {
+        border-radius: 1.1rem;
+        background: rgba(255, 255, 255, 0.83);
+        margin-bottom: 14px;
+        box-shadow: 0 1px 7px 0 rgba(44, 112, 255, 0.045);
+        border: 1px solid #f2f5ff;
+        overflow: hidden;
+      }
+      .name-header {
+        cursor: pointer;
+        font-size: 1.02rem;
+        font-weight: 600;
+        background: linear-gradient(90deg, #e7f1ff 0%, #ffffff 80%);
+        padding: 13px 18px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #e9f0ff;
+        color: #1b395c;
+        transition: background 0.16s;
+        user-select: none;
+      }
+      .name-header:hover {
+        background: #f4f8ff;
+      }
+      .name-panel.open > .name-header .chevron {
+        transform: rotate(90deg);
+      }
+      .name-content {
+        display: none;
+        padding: 12px 18px 18px 18px;
+      }
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+        margin-top: 8px;
+        font-size: 0.98rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 7px 12px;
+      }
+      th {
+        background: #ecf2ff;
+        color: #315fbe;
+        font-weight: 700;
+        border-radius: 0.5rem 0.5rem 0 0;
+      }
+      tr {
+        background: #fff;
+        border-radius: 0.5rem;
+        transition: background 0.12s;
+      }
+      tr:hover {
+        background: #f4f8ff;
+      }
+      .score-main {
+        font-weight: 700;
+        color: #1976d2;
+        font-size: 1.1em;
+      }
+      .variation-self {
+        font-weight: 700;
+        color: #2e3e52;
+      }
+      .tag {
+        background: #e9f1ff;
+        color: #1976d2;
+        padding: 2.5px 9px;
+        border-radius: 5.5px;
+        font-size: 0.87em;
+        margin-left: 8px;
+        font-weight: 500;
+      }
+      @media (max-width: 650px) {
+        .container {
+          padding: 0 2vw;
+        }
+        h1 {
+          padding-left: 7vw;
+        }
+        .summary {
+          padding-left: 7vw;
+        }
+        .panel {
+          margin: 0 2vw 20px 2vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Scoring Dashboard</h1>
+      <div class="summary">
+        <div>
+          <b>Avg Score (1hr):</b>
+          <span class="score-main"
+            >{{ average_score_latest_1hr|round(4) }}</span
+          >
+        </div>
+        <div>
+          <b>Latest Score (1hr):</b>
+          <span class="score-main">{{ latest_score_1hr|round(4) }}</span>
+        </div>
+        <div><b>Updated:</b> {{ latest_score_1hr_created }}</div>
+        <div><b>User ID:</b> <span>{{ uid }}</span></div>
+      </div>
+      {% if averages and averages|length > 0 %}
+      <div
+        style="
+          width: 92%;
+          max-width: 740px;
+          margin: 0 auto 30px auto;
+          background: rgba(255, 255, 255, 0.85);
+          border-radius: 1.3rem;
+          box-shadow: 0 3px 14px 0 rgba(44, 112, 255, 0.06);
+          padding: 18px 14px 12px 14px;
+        "
+      >
+        <canvas id="scoreChart" height="68"></canvas>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        const chartLabels = {{ averages | map(attribute='timestamp') | list | tojson }};
+        const chartData = {{ averages | map(attribute='score') | list | tojson }};
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels.map(ts => ts.replace('T', ' ').slice(0, 19)),
+                datasets: [{
+                    label: 'Score',
+                    data: chartData,
+                    fill: true,
+                    tension: 0.27,
+                    borderColor: '#0b63d3',
+                    backgroundColor: 'rgba(11,99,211,0.12)',
+                    pointRadius: 2.6,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        min: 0, max: 1,
+                        grid: { color: "#e6e6ee", drawBorder: false },
+                        display: false
+                    }
+                }
+            }
+        });
+      </script>
+      {% endif %} {% for session in details %}
+      <div class="panel">
+        <div class="panel-header" onclick="togglePanel(this)">
+          <span class="chevron">&#9654;</span>
+          Session <b>#{{ session.session_id }}</b>
+          <span class="tag"
+            >Avg Final Score: {{ session.avg_final_score|round(4) }}</span
+          >
+          <span class="tag">{{ session.created_at }}</span>
+        </div>
+        <div class="panel-content">
+          {% for name in session.names %}
+          <div class="name-panel">
+            <div class="name-header" onclick="togglePanel(this)">
+              <span class="chevron">&#9654;</span>
+              <span
+                >Name: <span class="variation-self">{{ name.name }}</span></span
+              >
+              <span class="tag">Base: {{ name.base_score|round(3) }}</span>
+              <span class="tag">Final: {{ name.final_score|round(3) }}</span>
+            </div>
+            <div class="name-content">
+              <table>
+                <tr>
+                  <th>Variation</th>
+                  <th>Phonetic</th>
+                  <th>Orthographic</th>
+                </tr>
+                {% for v in name.variations %}
+                <tr>
+                  <td>
+                    {% if v.variation == name.name %}
+                    <span class="variation-self">{{ v.variation }}</span>
+                    {% else %}
+                    <span>{{ v.variation }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ v.phonetic_score|round(3) }}</td>
+                  <td>{{ v.orthographic_score|round(3) }}</td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      // Universal panel toggler (works for both session & name panels)
+      function togglePanel(el) {
+        var panel = el.parentElement;
+        var content = el.nextElementSibling;
+        // for name panel, panel-content may not be immediate next
+        if (panel.classList.contains("panel")) {
+          panel.classList.toggle("open");
+          content = panel.querySelector(".panel-content");
+        } else if (panel.classList.contains("name-panel")) {
+          panel.classList.toggle("open");
+          content = panel.querySelector(".name-content");
+        }
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      }
+    </script>
+  </body>
+</html>

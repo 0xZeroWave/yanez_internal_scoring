@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Latest Miner Scores</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            margin: 0; padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 48px auto;
+            padding: 0;
+            background: rgba(255,255,255,0.43);
+            border-radius: 2.3rem;
+            box-shadow: 0 12px 38px 0 rgba(0, 0, 0, 0.09), 0 1.5px 7px 0 rgba(0,0,0,0.04);
+            backdrop-filter: blur(9px);
+            border: 1.2px solid rgba(255,255,255,0.15);
+            min-height: 80vh; /* Minimal tinggi 80% viewport */
+            display: flex; flex-direction: column;
+        }
+        h1 {
+            font-weight: 800;
+            font-size: 2.1rem;
+            margin: 0 0 30px 0;
+            letter-spacing: -.01em;
+            color: #21253b;
+            text-align: center;
+            padding-top: 38px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 92%;
+            margin: 0 auto 38px auto;
+            font-size: 1.06rem;
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 3px 14px 0 rgba(44,112,255,0.08);
+            border-radius: 1.2rem;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 13px 18px;
+        }
+        th {
+            background: #ecf2ff;
+            color: #315fbe;
+            font-weight: 700;
+            border-radius: 0.5rem 0.5rem 0 0;
+            border: none;
+        }
+        tr {
+            background: #fff;
+            border-radius: 0.5rem;
+            transition: background 0.14s;
+            cursor: pointer;
+        }
+        tr:nth-child(even) { background: #f6f7fa; }
+        tr:hover { background: #eaf4ff; }
+        td {
+            color: #222c3f;
+            border: none;
+            text-align: centers;
+        }
+        .uid-link {
+            color: #1366d6;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.09em;
+        }
+        @media (max-width: 650px) {
+            .container { padding: 0 2vw;}
+            h1 { font-size: 1.25rem; padding-top: 17px; }
+            table { font-size: 0.98rem; }
+            th, td { padding: 9px 6px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Latest Scores per Miner UID</h1>
+        {% if latest_scores and latest_scores|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Latest Score</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in latest_scores %}
+                    <tr onclick="window.location.href='{{ url_for('dashboard.miner', uid=row.uid) }}';">
+                        <td>
+                            <span class="uid-link">{{ row.uid }}</span>
+                        </td>
+                        <td>{{ "%.4f"|format(row.latest_score) }}</td>
+                        <td>{{ row.created_at.replace('T', ' ') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style='text-align:center; margin-bottom:50px;'>No scores available.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

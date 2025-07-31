@@ -1,0 +1,9 @@
+flask
+dotenv
+SQLAlchemy
+APScheduler
+Flask-SQLAlchemy
+Levenshtein
+jellyfish
+numpy
+gunicorn
