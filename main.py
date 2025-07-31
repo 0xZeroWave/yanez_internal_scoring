@@ -3,6 +3,13 @@ from app.routes.score import service_bp
 from app.routes.dashboard import dashboard_bp
 from app.model.score import db
 from app.service.scheduler import start_scheduler
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+)
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///scores.db'
