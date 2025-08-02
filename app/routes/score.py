@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, jsonify, request
-from app.service.utils import calculate_variation_scores
+from app.service.cal_score import calculate_variation_scores
 from app.model.score import db, ScoreSession, NameScore, VariationScore, UserUID, AverageScore
 import numpy as np
 from datetime import datetime, timezone, timedelta
@@ -18,7 +18,6 @@ def input_score():
     log.info("POST /yanez/score accessed")
     try:
         data = request.json
-        print(data)
         uid = data.get('uid', 0)
         variation_config = data.get('variation_config', {})
         variation_result = data.get('variation_result', {})
@@ -61,7 +60,12 @@ def input_score():
                     db.session.add(variation_score)
         db.session.commit()
         log.info(f"Scores for UID {uid} successfully saved")
-        return jsonify({"status": True, "data": {'Average Final Score': variations_scores['average_final_score']}})
+        return jsonify({
+            "status": True, 
+            "data": {
+                'Average Final Score': variations_scores['average_final_score']
+            }
+        })
     except Exception as e:
         log.error(f"Error in input_score: {e}", exc_info=True)
         db.session.rollback()
@@ -73,6 +77,9 @@ def get_score():
     log.info("GET /yanez/score accessed")
     try:
         uid_value = request.args.get('uid', None)
+        page = request.args.get('page', 1, type=int)
+        size = request.args.get('size', 10, type=int)
+        size = min(size, 100)
         now = datetime.now(timezone.utc)
         one_hour_ago = now - timedelta(hours=1)
         if not uid_value:
@@ -109,8 +116,15 @@ def get_score():
         latest_1hr_created = latest_1hr.created_at.isoformat() if latest_1hr else None
 
         # c. Table detail session, name, variations
+        sessions_query = ScoreSession.query.filter_by(user_id=user.id).order_by(ScoreSession.created_at.desc())
+        total_sessions = sessions_query.count()
+        paginated_sessions = sessions_query.paginate(
+            page=page,
+            per_page=size,
+            error_out=False
+        )
         detail_sessions = []
-        for session in ScoreSession.query.filter_by(user_id=user.id).order_by(ScoreSession.created_at.desc()).all():
+        for session in paginated_sessions.items:
             session_data = {
                 'session_id': session.id,
                 'avg_final_score': session.avg_final_score,
@@ -141,6 +155,16 @@ def get_score():
                 }
                 session_data['names'].append(name_data)
             detail_sessions.append(session_data)
+        pagination_info = {
+            'current_page': page,
+            'per_page': size,
+            'total_items': total_sessions,
+            'total_pages': paginated_sessions.pages,
+            'has_next': paginated_sessions.has_next,
+            'has_prev': paginated_sessions.has_prev,
+            'next_page': paginated_sessions.next_num if paginated_sessions.has_next else None,
+            'prev_page': paginated_sessions.prev_num if paginated_sessions.has_prev else None
+        }
 
         log.info(f"Returned score details for UID {user.uid}")
         return jsonify({
@@ -149,10 +173,40 @@ def get_score():
             'average_score_latest_1hr': avg_score_1hr,
             'latest_score_1hr': latest_1hr_score,
             'latest_score_1hr_created': latest_1hr_created,
-            'details': detail_sessions
+            'details': detail_sessions,
+            'pagination': pagination_info
         })
     except Exception as e:
         log.error(f"Error in get_score: {e}", exc_info=True)
+        return jsonify({'status': False, 'message': str(e)}), 500
+
+@service_bp.route('/yanez/modify_variations', methods=['POST'])
+@require_api_key
+def modify_variations():
+    """
+    Modify variations to match configuration requirements without calculating scores.
+    """
+    log.info("POST /yanez/modify_variations accessed")
+    try:
+        data = request.json
+        variation_config = data.get('variation_config', {})
+        variation_result = data.get('variation_result', {})
+        
+        # Modify variations to match config requirements
+        from app.utils.var_modifier import modify_variation_result_to_match_config
+        modified_variation_result = modify_variation_result_to_match_config(variation_result, variation_config)
+        
+        log.info(f"Successfully modified variations for {len(modified_variation_result)} seed names")
+        return jsonify({
+            "status": True,
+            "data": {
+                'modified_variation_result': modified_variation_result,
+                'original_count': sum(len(vars) for vars in variation_result.values()),
+                'modified_count': sum(len(vars) for vars in modified_variation_result.values())
+            }
+        })
+    except Exception as e:
+        log.error(f"Error in modify_variations: {e}", exc_info=True)
         return jsonify({'status': False, 'message': str(e)}), 500
 
 @service_bp.route('/yanez/avg_score/<string:uid>', methods=['GET'])
