@@ -2,7 +2,7 @@ from flask import Flask
 from app.routes.score import service_bp
 from app.routes.dashboard import dashboard_bp
 from app.model.score import db
-from app.service.scheduler import start_scheduler
+from app.utils.scheduler import start_scheduler
 import logging
 
 logging.basicConfig(

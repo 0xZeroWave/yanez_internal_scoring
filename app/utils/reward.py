@@ -28,7 +28,7 @@ import math
 import random
 
 # Import rule_evaluator for rule-based compliance checking
-from app.service.rule_evaluator import evaluate_rule_compliance
+from app.utils.rule_evaluator import evaluate_rule_compliance
 
 # Define the reward component weights globally
 MIID_REWARD_WEIGHTS = {
@@ -769,7 +769,7 @@ def get_name_variation_rewards(
                 if rule_based and "rule_compliance" in name_detailed_metrics:
                     miner_metrics["rule_compliance"]["by_name"][name] = name_detailed_metrics["rule_compliance"]
             except Exception as e:
-                bt.logging.error(f"Error calculating quality for miner {uid}, name '{name}': {str(e)}")
+                print(f"Error calculating quality for miner {uid}, name '{name}': {str(e)}")
                 traceback.print_exc()
         
         # Calculate overall rule compliance score if applicable
